@@ -4,7 +4,6 @@ const logger = require('./utils/logger');
 
 // Import route handlers
 const ghlWebhookRoute = require('./routes/ghl-webhook');
-const retellWebhookRoute = require('./routes/retell-webhook');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,13 +18,12 @@ app.get('/', (req, res) => {
     status: 'online',
     service: 'Financial Healer Automation Server',
     version: '1.0.0',
-    endpoints: ['/webhook/ghl-payment', '/webhook/retell']
+    endpoints: ['/webhook/ghl-payment']
   });
 });
 
 // Webhook routes
 app.post('/webhook/ghl-payment', ghlWebhookRoute);
-app.post('/webhook/retell', retellWebhookRoute);
 
 // 404 handler
 app.use((req, res) => {
@@ -47,7 +45,7 @@ app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
   console.log(`Financial Healer Automation Server`);
   console.log(`Listening on port ${PORT}`);
-  console.log(`Endpoints: /webhook/ghl-payment, /webhook/retell`);
+  console.log(`Endpoint: /webhook/ghl-payment`);
 });
 
 module.exports = app;

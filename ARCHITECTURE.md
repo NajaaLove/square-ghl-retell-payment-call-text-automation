@@ -14,7 +14,7 @@ The Financial Healer automation server is a lightweight Node.js/Express API that
 
 ## Data Flow
 
-### 1. Payment → Onboarding Call
+### Step 1 — Payment → Onboarding Call (THIS REPO)
 
 ```
 Client pays on Square ($597 Elevation / $997 VIP / $1,200 Couples)
@@ -23,37 +23,32 @@ Client pays on Square ($597 Elevation / $997 VIP / $1,200 Couples)
 GHL receives "Payment Received" from Square integration
         │
         ▼
-GHL Workflow fires POST /webhook/ghl-payment to Railway server
+GHL Workflow fires POST /webhook/ghl-payment to THIS Railway service
         │
-        ├──► Retell AI: create outbound call (Aria → client)
+        ├──► Notion: create page in Client Pipeline database
+        │           Status: "Payment Received - Calling Now"
         │
-        └──► Notion: create page in Client Pipeline database
-                     (Status: "Onboarding - Aria Called")
+        └──► Retell AI: create outbound call (Aria → client)
         │
         ▼
 Railway returns 200 OK to GHL
 ```
 
-### 2. Call Completion → Ready for Disputes
+### Step 2 — Call Completion → Ready for Disputes (SEPARATE REPO / RAILWAY SERVICE)
 
 ```
 Aria finishes call with client
         │
         ▼
-Retell AI fires POST /webhook/retell to Railway server
+Retell AI fires POST /webhook/retell to the OTHER Railway service
+(financial-healer-square-retell-notion-automation)
         │
         ├──► Notion: create page in Aria Activity Log database
-        │           (call_id, duration, sentiment, transcript, summary)
         │
-        └──► Notion: find client in Client Pipeline by email
-                     update Status → "Credentials Submitted - Ready for Mahad"
-                     update Last Aria Call date
+        └──► Notion: update client Status → "Credentials Submitted - Ready for Mahad"
         │
         ▼
-Railway returns 200 OK to Retell
-        │
-        ▼
-Mahad sees updated client status in Notion → begins disputes work
+Mahad sees updated status in Notion → begins disputes work
 ```
 
 ---
@@ -118,7 +113,8 @@ server.js                   Express app setup, middleware, route mounting
 
 **Status lifecycle:**
 ```
-"Onboarding - Aria Called"  →  "Credentials Submitted - Ready for Mahad"
+"Payment Received - Calling Now"  →  "Credentials Submitted - Ready for Mahad"
+        (set by this repo)               (set by the Retell webhook repo)
 ```
 
 ### Aria Activity Log Database

@@ -25,7 +25,7 @@ class NotionService {
             select: { name: pkg }
           },
           'Status': {
-            select: { name: 'Onboarding - Aria Called' }
+            select: { name: 'Payment Received - Calling Now' }
           },
           'Payment Date': {
             date: { start: timestamp }
