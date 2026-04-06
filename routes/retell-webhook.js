@@ -24,23 +24,20 @@ module.exports = async (req, res) => {
 
     logger.info('Aria log created', { logId: logResponse.id });
 
-    // 2. Update client status in Client Pipeline
-    if (callData.metadata?.client_email) {
-      logger.info('Finding and updating client record', { email: callData.metadata.client_email });
+    // 2. Update client stage in Client Pipeline
+    if (callData.metadata?.client_name) {
+      logger.info('Finding and updating client record', { name: callData.metadata.client_name });
 
-      const clientPage = await notionService.findClientByEmail(
+      const clientPage = await notionService.findClientByName(
         process.env.NOTION_DATABASE_ID_CLIENT_PIPELINE,
-        callData.metadata.client_email
+        callData.metadata.client_name
       );
 
       if (clientPage) {
-        await notionService.updateClientStatus(
-          clientPage.id,
-          'Credentials Submitted - Ready for Mahad'
-        );
-        logger.info('Client status updated', { pageId: clientPage.id });
+        await notionService.updateClientStatus(clientPage.id);
+        logger.info('Client stage updated to Credentials Complete', { pageId: clientPage.id });
       } else {
-        logger.info('Client not found in pipeline', { email: callData.metadata.client_email });
+        logger.info('Client not found in pipeline', { name: callData.metadata.client_name });
       }
     }
 
