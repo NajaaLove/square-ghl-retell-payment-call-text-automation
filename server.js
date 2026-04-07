@@ -1,51 +1,43 @@
 require('dotenv').config();
 const express = require('express');
 const logger = require('./utils/logger');
-
-// Import route handlers
-const ghlWebhookRoute = require('./routes/ghl-webhook');
+const squarePaymentRoute = require('./routes/square-payment');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
+// Health check
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
-    service: 'Financial Healer Automation Server',
+    service: 'Financial Healer — Square Payment Webhook',
     version: '1.0.0',
-    endpoints: ['/webhook/ghl-payment']
+    endpoint: 'POST /webhook/square-payment'
   });
 });
 
-// Webhook routes
-app.post('/webhook/ghl-payment', ghlWebhookRoute);
+// Payment webhook: GHL fires this after a Square payment
+app.post('/webhook/square-payment', squarePaymentRoute);
 
-// 404 handler
+// 404
 app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Not found' });
 });
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
   logger.error('Unhandled error', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    message: err.message
-  });
+  res.status(500).json({ success: false, error: 'Internal server error', message: err.message });
 });
 
-// Start server
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
-  console.log(`Financial Healer Automation Server`);
+  console.log(`Financial Healer — Square Payment Webhook`);
   console.log(`Listening on port ${PORT}`);
-  console.log(`Endpoint: /webhook/ghl-payment`);
+  console.log(`POST /webhook/square-payment`);
 });
 
 module.exports = app;

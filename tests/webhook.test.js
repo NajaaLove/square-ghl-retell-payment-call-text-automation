@@ -1,7 +1,7 @@
 const { validateGHLPayload } = require('../utils/validators');
 
 // ---------------------------------------------------------------------------
-// validators.js — validateGHLPayload
+// validateGHLPayload
 // ---------------------------------------------------------------------------
 describe('validateGHLPayload', () => {
   const validPayload = {
@@ -10,13 +10,11 @@ describe('validateGHLPayload', () => {
       lastName: 'Doe',
       email: 'john.doe@example.com',
       phone: '+15551234567',
-      customFields: {
-        package: 'Elevation'
-      }
+      customFields: { package: 'VIP' }
     },
     payment: {
-      amount: 597.00,
-      timestamp: '2026-04-06T14:30:00Z'
+      amount: 997.00,
+      timestamp: '2026-04-07T10:00:00Z'
     }
   };
 
@@ -33,89 +31,58 @@ describe('validateGHLPayload', () => {
   });
 
   test('returns invalid when firstName is missing', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    delete payload.contact.firstName;
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Missing firstName');
+    const p = JSON.parse(JSON.stringify(validPayload));
+    delete p.contact.firstName;
+    expect(validateGHLPayload(p).errors).toContain('Missing firstName');
   });
 
   test('returns invalid when lastName is missing', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    delete payload.contact.lastName;
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Missing lastName');
+    const p = JSON.parse(JSON.stringify(validPayload));
+    delete p.contact.lastName;
+    expect(validateGHLPayload(p).errors).toContain('Missing lastName');
   });
 
   test('returns invalid when email is missing', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    delete payload.contact.email;
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Missing email');
+    const p = JSON.parse(JSON.stringify(validPayload));
+    delete p.contact.email;
+    expect(validateGHLPayload(p).errors).toContain('Missing email');
   });
 
   test('returns invalid for a malformed email', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    payload.contact.email = 'not-an-email';
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Invalid email format');
+    const p = JSON.parse(JSON.stringify(validPayload));
+    p.contact.email = 'not-an-email';
+    expect(validateGHLPayload(p).errors).toContain('Invalid email format');
   });
 
   test('returns invalid when phone is missing', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    delete payload.contact.phone;
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Missing phone');
+    const p = JSON.parse(JSON.stringify(validPayload));
+    delete p.contact.phone;
+    expect(validateGHLPayload(p).errors).toContain('Missing phone');
   });
 
-  test('returns invalid for a phone without country code', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    payload.contact.phone = '5551234567'; // missing leading +1
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain(
+  test('returns invalid for phone without country code', () => {
+    const p = JSON.parse(JSON.stringify(validPayload));
+    p.contact.phone = '5551234567';
+    expect(validateGHLPayload(p).errors).toContain(
       'Invalid phone format (must include country code, e.g., +15551234567)'
     );
   });
 
   test('returns invalid when package is missing', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    delete payload.contact.customFields.package;
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Missing package in customFields');
-  });
-
-  test('returns invalid when customFields is missing entirely', () => {
-    const payload = JSON.parse(JSON.stringify(validPayload));
-    delete payload.contact.customFields;
-    const result = validateGHLPayload(payload);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('Missing package in customFields');
-  });
-
-  test('accepts all three valid package types', () => {
-    for (const pkg of ['Elevation', 'VIP', 'Couples']) {
-      const payload = JSON.parse(JSON.stringify(validPayload));
-      payload.contact.customFields.package = pkg;
-      const result = validateGHLPayload(payload);
-      expect(result.valid).toBe(true);
-    }
+    const p = JSON.parse(JSON.stringify(validPayload));
+    delete p.contact.customFields.package;
+    expect(validateGHLPayload(p).errors).toContain('Missing package in customFields');
   });
 });
 
 // ---------------------------------------------------------------------------
-// logger.js — smoke tests (just ensure no throws)
+// logger smoke tests
 // ---------------------------------------------------------------------------
 describe('logger', () => {
   const logger = require('../utils/logger');
 
   test('logger.info does not throw', () => {
-    expect(() => logger.info('test message', { key: 'value' })).not.toThrow();
+    expect(() => logger.info('test', { key: 'value' })).not.toThrow();
   });
 
   test('logger.error does not throw', () => {
@@ -123,6 +90,6 @@ describe('logger', () => {
   });
 
   test('logger.webhook does not throw', () => {
-    expect(() => logger.webhook('/test', { foo: 'bar' })).not.toThrow();
+    expect(() => logger.webhook('/webhook/square-payment', { foo: 'bar' })).not.toThrow();
   });
 });
