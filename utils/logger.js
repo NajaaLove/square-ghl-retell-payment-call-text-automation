@@ -8,6 +8,15 @@ const logger = {
     }));
   },
 
+  warn: (message, data = {}) => {
+    console.warn(JSON.stringify({
+      level: 'WARN',
+      timestamp: new Date().toISOString(),
+      message,
+      ...data
+    }));
+  },
+
   error: (message, error = {}) => {
     console.error(JSON.stringify({
       level: 'ERROR',

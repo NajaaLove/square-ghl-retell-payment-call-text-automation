@@ -31,6 +31,27 @@ const validateGHLPayload = (payload) => {
   };
 };
 
+const validateSquarePayload = (body) => {
+  const errors = [];
+
+  const payment = body?.data?.object?.payment;
+  if (!payment) {
+    errors.push('Missing data.object.payment');
+    return { valid: false, errors };
+  }
+
+  if (typeof payment.id !== 'string') errors.push('payment.id must be a string');
+  if (typeof payment.status !== 'string') errors.push('payment.status must be a string');
+  if (typeof payment.amount_money?.amount !== 'number') errors.push('payment.amount_money.amount must be a number');
+  if (typeof payment.buyer_email_address !== 'string') errors.push('payment.buyer_email_address must be a string');
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+};
+
 module.exports = {
-  validateGHLPayload
+  validateGHLPayload,
+  validateSquarePayload
 };

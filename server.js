@@ -15,12 +15,18 @@ app.get('/', (req, res) => {
     status: 'online',
     service: 'Financial Healer — Square Payment Webhook',
     version: '1.0.0',
-    endpoint: 'POST /webhook/square-payment'
+    endpoints: [
+      'POST /webhook/square-payment',
+      'POST /webhook/square-direct'
+    ]
   });
 });
 
 // Payment webhook: GHL fires this after a Square payment
 app.post('/webhook/square-payment', squarePaymentRoute);
+
+const squareDirectRoute = require('./routes/square-direct');
+app.post('/webhook/square-direct', squareDirectRoute);
 
 // 404
 app.use((req, res) => {
@@ -38,6 +44,7 @@ app.listen(PORT, () => {
   console.log(`Financial Healer — Square Payment Webhook`);
   console.log(`Listening on port ${PORT}`);
   console.log(`POST /webhook/square-payment`);
+  console.log(`POST /webhook/square-direct`);
 });
 
 module.exports = app;
