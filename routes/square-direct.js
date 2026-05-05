@@ -1,6 +1,7 @@
 const logger = require('../utils/logger');
 const { validateSquarePayload } = require('../utils/validators');
 const { mapPaymentToPackage } = require('../utils/packageMap');
+const { isDuplicate, markProcessed } = require('../utils/dedup');
 const GHLService = require('../services/ghl');
 const RetellService = require('../services/retell');
 
@@ -37,6 +38,14 @@ async function handleSquareDirectPayment(body) {
     return;
   }
 
+  if (isDuplicate(payment.id)) {
+    logger.info('[square-direct] duplicate payment, skipping', { paymentId: payment.id });
+    return;
+  }
+
+  // Note: Square Payment Link / Storefront payloads do NOT include payment.itemizations
+  // (those live on the Order, not the Payment), so productName is typically null and
+  // mapping falls back to amount-based lookup in packageMap.js.
   const productName = payment.itemizations?.[0]?.name || null;
   const amountCents = payment.amount_money?.amount ?? 0;
   const email = (payment.buyer_email_address || '').toLowerCase().trim();
@@ -104,4 +113,6 @@ async function handleSquareDirectPayment(body) {
   } else {
     logger.warn('[square-direct] no phone for Aria call', { contactId: contact.contactId, email });
   }
+
+  markProcessed(payment.id);
 }
