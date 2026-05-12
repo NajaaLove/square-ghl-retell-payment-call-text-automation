@@ -81,6 +81,26 @@ class GHLService {
       return false;
     }
   }
+
+  async updateContact(contactId, fields) {
+    try {
+      await axios.put(
+        `${this.baseUrl}/contacts/${contactId}`,
+        fields,
+        { headers: this.headers }
+      );
+      return true;
+    } catch (error) {
+      logger.error('[ghl-client] updateContact failed', {
+        contactId,
+        fields,
+        status: error.response?.status,
+        body: error.response?.data,
+        message: error.message
+      });
+      return false;
+    }
+  }
 }
 
 module.exports = GHLService;

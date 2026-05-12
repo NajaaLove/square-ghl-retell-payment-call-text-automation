@@ -96,9 +96,33 @@ async function handleSquareDirectPayment(body) {
     logger.error('[square-direct] failed to apply tag', { contactId: contact.contactId, tag: packageInfo.ghlTag });
   }
 
-  if (contact.phone) {
+  let phone = contact.phone || null;
+  let phoneSource = phone ? 'ghl' : null;
+
+  if (!phone) {
+    phone =
+      payment.buyer_phone_number ||
+      payment.shipping_address?.phone_number ||
+      payment.billing_address?.phone_number ||
+      null;
+    if (phone) phoneSource = 'square';
+  }
+
+  if (phoneSource === 'ghl') {
+    logger.info('[square-direct] phone resolved from GHL', { contactId: contact.contactId });
+  } else if (phoneSource === 'square') {
+    logger.info('[square-direct] phone resolved from Square payload', { contactId: contact.contactId });
+    const phoneUpdated = await ghlService.updateContact(contact.contactId, { phone });
+    if (phoneUpdated) {
+      logger.info('[square-direct] GHL contact phone updated from Square', { contactId: contact.contactId });
+    } else {
+      logger.error('[square-direct] failed to update GHL contact phone', { contactId: contact.contactId });
+    }
+  }
+
+  if (phone) {
     try {
-      const retellResponse = await retell.createOutboundCall(contact.phone, {
+      const retellResponse = await retell.createOutboundCall(phone, {
         client_name: `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Client',
         client_email: email,
         package: packageInfo.packageName,
@@ -111,7 +135,7 @@ async function handleSquareDirectPayment(body) {
       logger.error('[square-direct] Aria call failed', err);
     }
   } else {
-    logger.warn('[square-direct] no phone for Aria call', { contactId: contact.contactId, email });
+    logger.warn('[square-direct] no phone anywhere', { contactId: contact.contactId, email });
   }
 
   markProcessed(payment.id);
